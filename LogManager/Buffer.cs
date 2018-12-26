@@ -18,18 +18,20 @@ namespace LogManager
 
         public Buffer()
         {
-            InUse = true;
+            InUse = false;
             Full = false;
             _index = 0;
-            _logs = new Log[ConcurrentTrace.BUFFER_SIZE];
+            _logs = new Log[ConcurrentTrace.BufferSize];
         }
 
         public void Add(Log log)
         {
-            if (_index >= ConcurrentTrace.BUFFER_SIZE)
+            if (_index >= ConcurrentTrace.BufferSize)
             {
                 Full = true;
-                OnBufferFill(log);
+                if (OnBufferFill != null)
+                    OnBufferFill(log);
+
                 return;
             }
 
@@ -46,7 +48,7 @@ namespace LogManager
         public void Clean()
         {
             _index = 0;
-            _logs = new Log[ConcurrentTrace.BUFFER_SIZE];
+            _logs = new Log[ConcurrentTrace.BufferSize];
             Full = false;
         }
     }

@@ -12,8 +12,8 @@ namespace LogManager
 {
     public class ConcurrentTrace
     {
-        public static readonly int BUFFER_SIZE = 200;
-        public static readonly int NUMBER_OF_BUFFERS = 64;
+        public static int BufferSize = 200;
+        public static int NumberOfBuffers = 64;
 
         private volatile static Buffer[] Buffers = null;
         private static readonly object critSec = new object();
@@ -32,8 +32,12 @@ namespace LogManager
             var database = client.GetDatabase(Dns.GetHostName());
             Collection = database.GetCollection<Log>(collectionName);
 
-            Semaphore = new Semaphore(NUMBER_OF_BUFFERS, NUMBER_OF_BUFFERS);
-            Buffers = new Buffer[NUMBER_OF_BUFFERS];
+            Semaphore = new Semaphore(NumberOfBuffers, NumberOfBuffers);
+            Buffers = new Buffer[NumberOfBuffers];
+            for (int i = 0; i < NumberOfBuffers; i++)
+            {
+                Buffers[i] = new Buffer();
+            }
         }
 
         /// <summary>
@@ -42,7 +46,7 @@ namespace LogManager
         /// <param name="log">The log to be saved.</param>
         public static void Write(Log log)
         {
-            if (Collection != null) return;
+            if (Collection == null) return;
 
             Semaphore.WaitOne();
 
@@ -78,7 +82,7 @@ namespace LogManager
         /// </summary>
         public static void Flush()
         {
-            if (Collection != null) return;
+            if (Collection == null) return;
 
             List<Log> b = new List<Log>();
             for (int i = 0; i < Buffers.Length; i++)
@@ -86,8 +90,14 @@ namespace LogManager
                 b.AddRange(Buffers[i].Logs());
             }
 
+            if (b.Count == 0) return;
+
             Collection.InsertMany(b);
-            Buffers = new Buffer[NUMBER_OF_BUFFERS];
+            Buffers = new Buffer[NumberOfBuffers];
+            for (int i = 0; i < NumberOfBuffers; i++)
+            {
+                Buffers[i] = new Buffer();
+            }
         }
 
         /// <summary>
@@ -95,7 +105,7 @@ namespace LogManager
         /// </summary>
         public async static Task FlushAsync()
         {
-            if (Collection != null) return;
+            if (Collection == null) return;
 
             List<Log> b = new List<Log>();
             for (int i = 0; i < Buffers.Length; i++)
@@ -103,8 +113,14 @@ namespace LogManager
                 b.AddRange(Buffers[i].Logs());
             }
 
+            if (b.Count == 0) return;
+
             await Collection.InsertManyAsync(b);
-            Buffers = new Buffer[NUMBER_OF_BUFFERS];
+            Buffers = new Buffer[NumberOfBuffers];
+            for (int i = 0; i < NumberOfBuffers; i++)
+            {
+                Buffers[i] = new Buffer();
+            }
         }
     }
 }
