@@ -60,12 +60,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Buffer.cs" />
+    <Compile Include="BufferSizeExceededException.cs" />
     <Compile Include="ConcurrentTrace.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Origin.cs" />
     <Compile Include="Trace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TraceStateException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

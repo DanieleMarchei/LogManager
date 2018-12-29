@@ -23,8 +23,8 @@ namespace ConsoleTest
 
         static void Main(string[] args)
         {
-            ConcurrentTrace.BufferSize = 5;
-            ConcurrentTrace.NumberOfBuffers = 2;
+            ConcurrentTrace.BufferSize = 64;
+            ConcurrentTrace.NumberOfBuffers = 64;
 
             ConcurrentTrace.Connect("TestConcurrent2");
             List<Task> tasks = new List<Task>();

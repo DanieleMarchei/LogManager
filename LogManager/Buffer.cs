@@ -26,7 +26,13 @@ namespace LogManager
 
         public void Add(Log log)
         {
-            if (_index >= ConcurrentTrace.BufferSize)
+            if (_index >= ConcurrentTrace.BufferSize) throw new BufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ConcurrentTrace.BufferSize}.");
+
+            _logs[_index] = log;
+
+            _index++;
+
+            if (_index == ConcurrentTrace.BufferSize)
             {
                 Full = true;
                 if (OnBufferFill != null)
@@ -35,9 +41,6 @@ namespace LogManager
                 return;
             }
 
-            _logs[_index] = log;
-
-            _index++;
         }
 
         public Log[] Logs()

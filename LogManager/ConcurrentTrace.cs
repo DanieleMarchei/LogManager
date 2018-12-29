@@ -26,7 +26,7 @@ namespace LogManager
         /// <param name="collectionName">Name of the collection where the logs will be saved.</param>
         public static void Connect(string collectionName)
         {
-            if (Collection != null) return;
+            if (Collection != null) new TraceStateException("Connection already established.");
 
             var client = new MongoClient("mongodb://localhost:27017");
             var database = client.GetDatabase(Dns.GetHostName());
@@ -46,7 +46,7 @@ namespace LogManager
         /// <param name="log">The log to be saved.</param>
         public static void Write(Log log)
         {
-            if (Collection == null) return;
+            if (Collection == null) new TraceStateException("No connection has been created.");
 
             Semaphore.WaitOne();
 
@@ -82,7 +82,7 @@ namespace LogManager
         /// </summary>
         public static void Flush()
         {
-            if (Collection == null) return;
+            if (Collection == null) new TraceStateException("No connection has been created.");
 
             List<Log> b = new List<Log>();
             for (int i = 0; i < Buffers.Length; i++)
@@ -105,7 +105,7 @@ namespace LogManager
         /// </summary>
         public async static Task FlushAsync()
         {
-            if (Collection == null) return;
+            if (Collection == null) new TraceStateException("No connection has been created.");
 
             List<Log> b = new List<Log>();
             for (int i = 0; i < Buffers.Length; i++)
