@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace LogManager
 {
-    public class Buffer
+    /// <summary>
+    /// Data structue for cacheing logs
+    /// </summary>
+    internal class LogBuffer
     {
         public bool InUse { get; set; }
         public bool Full { get; private set; }
@@ -15,8 +18,15 @@ namespace LogManager
 
         private int _index { get; set; }
         private Log[] _logs { get; set; }
+        public Log[] Logs
+        {
+            get
+            {
+                return _logs.Where(l => l != null).ToArray();
+            }
+        }
 
-        public Buffer()
+        public LogBuffer()
         {
             InUse = false;
             Full = false;
@@ -24,9 +34,13 @@ namespace LogManager
             _logs = new Log[ConcurrentTrace.BufferSize];
         }
 
+        /// <summary>
+        /// Adds a log to the buffer.
+        /// </summary>
+        /// <param name="log">The log to be added</param>
         public void Add(Log log)
         {
-            if (_index >= ConcurrentTrace.BufferSize) throw new BufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ConcurrentTrace.BufferSize}.");
+            if (_index >= ConcurrentTrace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ConcurrentTrace.BufferSize}.");
 
             _logs[_index] = log;
 
@@ -43,11 +57,9 @@ namespace LogManager
 
         }
 
-        public Log[] Logs()
-        {
-            return _logs.Where(l => l != null).ToArray();
-        }
-
+        /// <summary>
+        /// Cleans the buffer.
+        /// </summary>
         public void Clean()
         {
             _index = 0;

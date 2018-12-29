@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace LogManager
 {
+    /// <summary>
+    /// The level for a log.
+    /// </summary>
     public enum LogLevel
     {
         INFO,

@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace LogManager
 {
+    /// <summary>
+    /// Exception rised when the Trace class is not in a valid state
+    /// </summary>
+    [Serializable]
     class TraceStateException : Exception
     {
         public TraceStateException() : base()

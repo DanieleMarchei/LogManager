@@ -59,8 +59,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Buffer.cs" />
-    <Compile Include="BufferSizeExceededException.cs" />
+    <Compile Include="LogBuffer.cs" />
+    <Compile Include="LogBufferSizeExceededException.cs" />
     <Compile Include="ConcurrentTrace.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="LogLevel.cs" />

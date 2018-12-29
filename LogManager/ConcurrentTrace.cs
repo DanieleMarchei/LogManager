@@ -15,7 +15,7 @@ namespace LogManager
         public static int BufferSize = 200;
         public static int NumberOfBuffers = 64;
 
-        private volatile static Buffer[] Buffers = null;
+        private volatile static LogBuffer[] Buffers = null;
         private static readonly object critSec = new object();
         private static IMongoCollection<Log> Collection = null;
         private static Semaphore Semaphore = null;
@@ -33,10 +33,10 @@ namespace LogManager
             Collection = database.GetCollection<Log>(collectionName);
 
             Semaphore = new Semaphore(NumberOfBuffers, NumberOfBuffers);
-            Buffers = new Buffer[NumberOfBuffers];
+            Buffers = new LogBuffer[NumberOfBuffers];
             for (int i = 0; i < NumberOfBuffers; i++)
             {
-                Buffers[i] = new Buffer();
+                Buffers[i] = new LogBuffer();
             }
         }
 
@@ -50,7 +50,7 @@ namespace LogManager
 
             Semaphore.WaitOne();
 
-            Buffer freeBuffer = null;
+            LogBuffer freeBuffer = null;
             lock (critSec)
             {
                 //TODO
@@ -87,16 +87,16 @@ namespace LogManager
             List<Log> b = new List<Log>();
             for (int i = 0; i < Buffers.Length; i++)
             {
-                b.AddRange(Buffers[i].Logs());
+                b.AddRange(Buffers[i].Logs);
             }
 
             if (b.Count == 0) return;
 
             Collection.InsertMany(b);
-            Buffers = new Buffer[NumberOfBuffers];
+            Buffers = new LogBuffer[NumberOfBuffers];
             for (int i = 0; i < NumberOfBuffers; i++)
             {
-                Buffers[i] = new Buffer();
+                Buffers[i] = new LogBuffer();
             }
         }
 
@@ -110,16 +110,16 @@ namespace LogManager
             List<Log> b = new List<Log>();
             for (int i = 0; i < Buffers.Length; i++)
             {
-                b.AddRange(Buffers[i].Logs());
+                b.AddRange(Buffers[i].Logs);
             }
 
             if (b.Count == 0) return;
 
             await Collection.InsertManyAsync(b);
-            Buffers = new Buffer[NumberOfBuffers];
+            Buffers = new LogBuffer[NumberOfBuffers];
             for (int i = 0; i < NumberOfBuffers; i++)
             {
-                Buffers[i] = new Buffer();
+                Buffers[i] = new LogBuffer();
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using LogManager;
@@ -16,19 +17,25 @@ namespace ConsoleTest
             Random r = new Random();
             int rand = r.Next(stringhe.Count);
 
-            Log l = new Log(LogLevel.DEBUG, DateTime.Now, new Origin(Thread.CurrentThread.ManagedThreadId.ToString()), stringhe[rand]);
+            Log l = new Log(LogLevel.DEBUG, DateTime.Now, new Origin(Thread.CurrentThread.ManagedThreadId), stringhe[rand]);
+            Stopwatch stopw = new Stopwatch();
+            stopw.Start();
+
             ConcurrentTrace.Write(l);
+
+            stopw.Stop();
+            Console.WriteLine($"{Task.CurrentId} -> {stopw.ElapsedMilliseconds}");
 
         }
 
         static void Main(string[] args)
         {
-            ConcurrentTrace.BufferSize = 64;
-            ConcurrentTrace.NumberOfBuffers = 64;
+            ConcurrentTrace.BufferSize = 10;
+            ConcurrentTrace.NumberOfBuffers = 2;
 
             ConcurrentTrace.Connect("TestConcurrent2");
             List<Task> tasks = new List<Task>();
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 22; i++)
             {
                 tasks.Add(Task.Factory.StartNew(Print));
             }
@@ -36,6 +43,8 @@ namespace ConsoleTest
             Task.WaitAll(tasks.ToArray());
 
             ConcurrentTrace.Flush();
+
+            Console.ReadLine();
 
         }
     }

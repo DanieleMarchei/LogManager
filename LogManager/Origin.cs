@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace LogManager
 {
+    /// <summary>
+    /// Represents the location where the log was generated.
+    /// </summary>
     public class Origin
     {
         public string IdDevice { get; private set; }
@@ -18,6 +21,10 @@ namespace LogManager
         public int ThreadId { get; private set; }
 
         public string MethodName { get; set; }
+
+        public Origin() : this("") { }
+
+        public Origin(int methodId) : this(methodId.ToString()) { }
 
         public Origin(string methodName)
         {
@@ -38,7 +45,5 @@ namespace LogManager
 
             MethodName = methodName;
         }
-
-        public Origin() : this("") { }
     }
 }
