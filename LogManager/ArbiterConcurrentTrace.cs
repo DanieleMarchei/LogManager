@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LogManager
 {
-    public static class ConcurrentTrace
+    public static class ArbiterConcurrentTrace
     {
         public static int BufferSize = 200;
         public static int NumberOfBuffers = 64;
@@ -18,7 +18,7 @@ namespace LogManager
         private volatile static LogBuffer[] Buffers = null;
         private static readonly object critSec = new object();
         private static IMongoCollection<Log> Collection = null;
-        private static Semaphore Semaphore = null;
+        private static Arbiter Arbiter = null;
 
         /// <summary>
         /// Connects to the localhost database where the logs will be saved.
@@ -32,12 +32,15 @@ namespace LogManager
             var database = client.GetDatabase(Dns.GetHostName());
             Collection = database.GetCollection<Log>(collectionName);
 
-            Semaphore = new Semaphore(NumberOfBuffers, NumberOfBuffers);
             Buffers = new LogBuffer[NumberOfBuffers];
             for (int i = 0; i < NumberOfBuffers; i++)
             {
                 Buffers[i] = new LogBuffer();
             }
+
+            Arbiter = new Arbiter(Buffers);
+            Arbiter.OnAllBuffersFilled += Flush;
+
         }
 
         /// <summary>
@@ -48,32 +51,11 @@ namespace LogManager
         {
             if (Collection == null) new TraceStateException("No connection has been created.");
 
-            Semaphore.WaitOne();
-
-            LogBuffer freeBuffer = null;
-            lock (critSec)
-            {
-                //TODO
-                //Find a way to do this quicker
-                freeBuffer = Buffers.FirstOrDefault(b => !b.InUse && !b.Full);
-
-                if(freeBuffer == null)
-                {
-                    Flush();
-                    //After the flush, every buffer is free. So take the first
-                    freeBuffer = Buffers[0];
-                }
-                else
-                {
-                    freeBuffer.InUse = true;
-                }
-            }
+            LogBuffer freeBuffer = Arbiter.Wait();
 
             freeBuffer.Add(log);
 
-            freeBuffer.InUse = false;
-
-            Semaphore.Release();
+            Arbiter.Release(freeBuffer);
         }
 
         /// <summary>

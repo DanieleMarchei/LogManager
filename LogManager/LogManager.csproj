@@ -59,12 +59,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arbiter.cs" />
     <Compile Include="LogBuffer.cs" />
     <Compile Include="LogBufferSizeExceededException.cs" />
     <Compile Include="ConcurrentTrace.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Origin.cs" />
+    <Compile Include="ArbiterConcurrentTrace.cs" />
     <Compile Include="Trace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TraceStateException.cs" />
