@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,8 +18,9 @@ namespace LogManager
 
         private volatile static LogBuffer[] Buffers = null;
         private static readonly object critSec = new object();
+        private static MongoClient client = null;
         private static IMongoCollection<Log> Collection = null;
-        private static Arbiter Arbiter = null;
+        private static Arbiter2 Arbiter = null;
 
         /// <summary>
         /// Connects to the localhost database where the logs will be saved.
@@ -26,9 +28,16 @@ namespace LogManager
         /// <param name="collectionName">Name of the collection where the logs will be saved.</param>
         public static void Connect(string collectionName)
         {
-            if (Collection != null) new TraceStateException("Connection already established.");
+            if (Collection != null) throw new TraceStateException("Connection already established.");
 
-            var client = new MongoClient("mongodb://localhost:27017");
+            client = new MongoClient("mongodb://localhost:27017");
+
+            //just to update the description state
+            var databases = client.ListDatabases();
+
+            if (client.Cluster.Description.State == ClusterState.Disconnected)
+                throw new TraceStateException("Local db is unreachable.");
+
             var database = client.GetDatabase(Dns.GetHostName());
             Collection = database.GetCollection<Log>(collectionName);
 
@@ -38,7 +47,7 @@ namespace LogManager
                 Buffers[i] = new LogBuffer();
             }
 
-            Arbiter = new Arbiter(Buffers);
+            Arbiter = new Arbiter2(Buffers);
             Arbiter.OnAllBuffersFilled += Flush;
 
         }
@@ -49,7 +58,8 @@ namespace LogManager
         /// <param name="log">The log to be saved.</param>
         public static void Write(Log log)
         {
-            if (Collection == null) new TraceStateException("No connection has been created.");
+            if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
+                throw new TraceStateException("No connection to local db.");
 
             LogBuffer freeBuffer = Arbiter.Wait();
 
@@ -63,21 +73,24 @@ namespace LogManager
         /// </summary>
         public static void Flush()
         {
-            if (Collection == null) new TraceStateException("No connection has been created.");
+            if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
+                throw new TraceStateException("No connection to local db.");
 
-            List<Log> b = new List<Log>();
-            for (int i = 0; i < Buffers.Length; i++)
+            lock (critSec)
             {
-                b.AddRange(Buffers[i].Logs);
-            }
+                List<Log> b = new List<Log>();
+                for (int i = 0; i < NumberOfBuffers; i++)
+                {
+                    b.AddRange(Buffers[i].Logs);
+                }
 
-            if (b.Count == 0) return;
+                if (b.Count == 0) return;
 
-            Collection.InsertMany(b);
-            Buffers = new LogBuffer[NumberOfBuffers];
-            for (int i = 0; i < NumberOfBuffers; i++)
-            {
-                Buffers[i] = new LogBuffer();
+                Collection.InsertMany(b);
+                for (int i = 0; i < NumberOfBuffers; i++)
+                {
+                    Buffers[i].Clear();
+                }
             }
         }
 
@@ -86,10 +99,11 @@ namespace LogManager
         /// </summary>
         public async static Task FlushAsync()
         {
-            if (Collection == null) new TraceStateException("No connection has been created.");
+            if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
+                throw new TraceStateException("No connection to local db.");
 
             List<Log> b = new List<Log>();
-            for (int i = 0; i < Buffers.Length; i++)
+            for (int i = 0; i < NumberOfBuffers; i++)
             {
                 b.AddRange(Buffers[i].Logs);
             }
@@ -97,10 +111,9 @@ namespace LogManager
             if (b.Count == 0) return;
 
             await Collection.InsertManyAsync(b);
-            Buffers = new LogBuffer[NumberOfBuffers];
             for (int i = 0; i < NumberOfBuffers; i++)
             {
-                Buffers[i] = new LogBuffer();
+                Buffers[i].Clear();
             }
         }
     }

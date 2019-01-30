@@ -31,7 +31,7 @@ namespace LogManager
             InUse = false;
             Full = false;
             _index = 0;
-            _logs = new Log[ConcurrentTrace.BufferSize];
+            _logs = new Log[ArbiterConcurrentTrace.BufferSize];
         }
 
         /// <summary>
@@ -42,6 +42,7 @@ namespace LogManager
         {
             if (_index >= ArbiterConcurrentTrace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ArbiterConcurrentTrace.BufferSize}.");
 
+            int l = _logs.Length;
             _logs[_index] = log;
 
             _index++;
@@ -63,7 +64,7 @@ namespace LogManager
         public void Clear()
         {
             _index = 0;
-            _logs = new Log[ConcurrentTrace.BufferSize];
+            _logs = new Log[ArbiterConcurrentTrace.BufferSize];
             Full = false;
         }
     }
