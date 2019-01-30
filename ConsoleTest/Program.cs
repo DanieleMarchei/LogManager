@@ -12,15 +12,19 @@ namespace ConsoleTest
     class Program
     {
         static ConcurrentDictionary<Guid, double> AvgDict = new ConcurrentDictionary<Guid, double>();
+
         static void Print()
         {
             double avg = 0;
 
-            const int NLOGS = 10000;
+            const int NLOGS = 10;
+
+            Random r = new Random();
 
             Stopwatch stopw = new Stopwatch();
             for (int i = 0; i < NLOGS; i++)
             {
+                //Thread.Sleep(500);
                 Log l = new Log(LogLevel.DEBUG, "This is a test log");
                 stopw.Restart();
 
@@ -36,10 +40,11 @@ namespace ConsoleTest
 
         }
 
+
         static void Main(string[] args)
         {
-            ArbiterConcurrentTrace.BufferSize = 64;
-            ArbiterConcurrentTrace.NumberOfBuffers = 64;
+            ArbiterConcurrentTrace.BufferSize = 10;
+            ArbiterConcurrentTrace.NumberOfBuffers = 5;
 
             ArbiterConcurrentTrace.Connect("TestConcurrent2");
             List<Task> tasks = new List<Task>();
@@ -56,9 +61,9 @@ namespace ConsoleTest
             Console.WriteLine(time);
             ArbiterConcurrentTrace.Flush();
 
-            using (StreamWriter file = new StreamWriter("ArbiterConcurrentTrace_benchmark.txt"))
-                foreach (var entry in AvgDict)
-                    file.WriteLine("{0} , {1}", entry.Key.ToString().Substring(0,4) , entry.Value.ToString().Replace(',','.'));
+            //using (StreamWriter file = new StreamWriter("ArbiterConcurrentTrace_benchmark.txt"))
+                //foreach (var entry in AvgDict)
+                    //file.WriteLine("{0} , {1}", entry.Key.ToString().Substring(0,4) , entry.Value.ToString().Replace(',','.'));
 
             Console.WriteLine("done");
             Console.ReadLine();

@@ -6,14 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace LogManager
 {
     public static class ArbiterConcurrentTrace
     {
-        public static int BufferSize = 200;
+        public static int BufferSize = 256;
         public static int NumberOfBuffers = 64;
 
         private volatile static LogBuffer[] Buffers = null;
@@ -21,6 +21,8 @@ namespace LogManager
         private static MongoClient client = null;
         private static IMongoCollection<Log> Collection = null;
         private static Arbiter2 Arbiter = null;
+
+        private static Timer timer = null;
 
         /// <summary>
         /// Connects to the localhost database where the logs will be saved.
@@ -50,6 +52,32 @@ namespace LogManager
             Arbiter = new Arbiter2(Buffers);
             Arbiter.OnAllBuffersFilled += Flush;
 
+            timer = new Timer(2000);
+            timer.AutoReset = true;
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+        }
+
+        private static void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
+                throw new TraceStateException("No connection to local db.");
+
+            lock (critSec)
+            {
+                List<Log> b = new List<Log>();
+                foreach (LogBuffer logBuff in Arbiter.ToList())
+                {
+                    b.AddRange(logBuff.Logs);
+                }
+
+                if (b.Count == 0) return;
+
+                Collection.InsertMany(b);
+                Arbiter.Clear();
+                Console.WriteLine("FLUSHED");
+
+            }
         }
 
         /// <summary>
@@ -78,19 +106,20 @@ namespace LogManager
 
             lock (critSec)
             {
+                timer.Stop();
                 List<Log> b = new List<Log>();
-                for (int i = 0; i < NumberOfBuffers; i++)
+                foreach (LogBuffer logBuff in Arbiter.ToList())
                 {
-                    b.AddRange(Buffers[i].Logs);
+                    b.AddRange(logBuff.Logs);
                 }
 
                 if (b.Count == 0) return;
 
                 Collection.InsertMany(b);
-                for (int i = 0; i < NumberOfBuffers; i++)
-                {
-                    Buffers[i].Clear();
-                }
+                Arbiter.Clear();
+                Console.WriteLine("FLUSHED");
+                timer.Start();
+
             }
         }
 

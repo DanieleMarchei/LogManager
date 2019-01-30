@@ -16,7 +16,7 @@ namespace LogManager
         public delegate void BufferFilled(Log log);
         public event BufferFilled OnBufferFill;
 
-        private int _index { get; set; }
+        public int CurrentIndex { get; private set; }
         private Log[] _logs { get; set; }
         public Log[] Logs
         {
@@ -30,7 +30,7 @@ namespace LogManager
         {
             InUse = false;
             Full = false;
-            _index = 0;
+            CurrentIndex = 0;
             _logs = new Log[ArbiterConcurrentTrace.BufferSize];
         }
 
@@ -40,14 +40,14 @@ namespace LogManager
         /// <param name="log">The log to be added</param>
         public void Add(Log log)
         {
-            if (_index >= ArbiterConcurrentTrace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ArbiterConcurrentTrace.BufferSize}.");
+            if (CurrentIndex >= ArbiterConcurrentTrace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ArbiterConcurrentTrace.BufferSize}.");
 
             int l = _logs.Length;
-            _logs[_index] = log;
+            _logs[CurrentIndex] = log;
 
-            _index++;
+            CurrentIndex++;
 
-            if (_index == ArbiterConcurrentTrace.BufferSize)
+            if (CurrentIndex == ArbiterConcurrentTrace.BufferSize)
             {
                 Full = true;
                 if (OnBufferFill != null)
@@ -63,7 +63,7 @@ namespace LogManager
         /// </summary>
         public void Clear()
         {
-            _index = 0;
+            CurrentIndex = 0;
             _logs = new Log[ArbiterConcurrentTrace.BufferSize];
             Full = false;
         }

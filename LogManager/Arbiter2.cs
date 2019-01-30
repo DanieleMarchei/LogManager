@@ -11,15 +11,12 @@ namespace LogManager
 {
     internal class Arbiter2
     {
-        public int Threads { get; private set; }
-
         public delegate void AllBuffersFilled();
         public event AllBuffersFilled OnAllBuffersFilled;
 
         private ConcurrentQueue<LogBuffer> Resources = null;
         private int bufferSize = 0;
         private ConcurrentQueue<LogBuffer> FullResources = null;
-        private readonly object critSec = new object();
 
         public Arbiter2(IEnumerable<LogBuffer> resources)
         {
@@ -54,8 +51,27 @@ namespace LogManager
                     buff.Clear();
                     Resources.Enqueue(buff);
                 }
+            } 
+        }
+
+        public IEnumerable<LogBuffer> ToList()
+        {
+            List<LogBuffer> buffers = Resources.Where(b => b.CurrentIndex > 0).ToList();
+            buffers.AddRange(FullResources.ToList());
+            return buffers;
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < bufferSize; i++)
+            {
+                LogBuffer buff = null;
+                Resources.TryDequeue(out buff);
+                if (buff == null) return;
+
+                buff.Clear();
+                Resources.Enqueue(buff);
             }
-            
         }
 
     }
