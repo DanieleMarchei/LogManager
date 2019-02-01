@@ -3,6 +3,7 @@ using MongoDB.Driver.Core.Clusters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -28,6 +29,7 @@ namespace LogManager
         /// Connects to the localhost database where the logs will be saved.
         /// </summary>
         /// <param name="collectionName">Name of the collection where the logs will be saved.</param>
+        [Conditional("TRACE_LOG")]
         public static void Connect(string collectionName)
         {
             if (Collection != null) throw new TraceStateException("Connection already established.");
@@ -50,14 +52,16 @@ namespace LogManager
             }
 
             Arbiter = new Arbiter2(Buffers);
-            Arbiter.OnAllBuffersFilled += Flush;
+            //I create a new delegate in order to call a method with a Conditional Attribute
+            Arbiter.OnAllBuffersFilled += delegate { Flush(); };
 
             timer = new Timer(2000);
             timer.AutoReset = true;
-            timer.Elapsed += Timer_Elapsed;
+            timer.Elapsed += delegate { Timer_Elapsed(null, null); };
             timer.Start();
         }
 
+        [Conditional("TRACE_LOG")]
         private static void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
@@ -75,8 +79,6 @@ namespace LogManager
 
                 Collection.InsertMany(b);
                 Arbiter.Clear();
-                Console.WriteLine("FLUSHED");
-
             }
         }
 
@@ -84,6 +86,7 @@ namespace LogManager
         /// Writes the log into the buffer.
         /// </summary>
         /// <param name="log">The log to be saved.</param>
+        [Conditional("TRACE_LOG")]
         public static void Write(Log log)
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
@@ -99,6 +102,7 @@ namespace LogManager
         /// <summary>
         /// Transfers synchronously all the logs from the buffer into the database.
         /// </summary>
+        [Conditional("TRACE_LOG")]
         public static void Flush()
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
@@ -117,32 +121,7 @@ namespace LogManager
 
                 Collection.InsertMany(b);
                 Arbiter.Clear();
-                Console.WriteLine("FLUSHED");
                 timer.Start();
-
-            }
-        }
-
-        /// <summary>
-        /// Transfers asynchronously all the logs from the buffer into the database.
-        /// </summary>
-        public async static Task FlushAsync()
-        {
-            if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
-                throw new TraceStateException("No connection to local db.");
-
-            List<Log> b = new List<Log>();
-            for (int i = 0; i < NumberOfBuffers; i++)
-            {
-                b.AddRange(Buffers[i].Logs);
-            }
-
-            if (b.Count == 0) return;
-
-            await Collection.InsertManyAsync(b);
-            for (int i = 0; i < NumberOfBuffers; i++)
-            {
-                Buffers[i].Clear();
             }
         }
     }

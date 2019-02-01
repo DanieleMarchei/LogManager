@@ -40,7 +40,6 @@ namespace ConsoleTest
 
         }
 
-
         static void Main(string[] args)
         {
             ArbiterConcurrentTrace.BufferSize = 10;
