@@ -7,17 +7,19 @@ using System.Threading.Tasks;
 namespace LogManager
 {
     /// <summary>
-    /// Data structue for cacheing logs
+    /// Data structue for caching logs
     /// </summary>
-    internal class LogBuffer
+    internal class LogBuffer : IClearable
     {
-        public bool InUse { get; set; }
-        public bool Full { get; private set; }
+        private bool Full;
         public delegate void BufferFilled(Log log);
         public event BufferFilled OnBufferFill;
 
-        public int CurrentIndex { get; private set; }
+        private int CurrentIndex = 0;
         private Log[] _logs { get; set; }
+        /// <summary>
+        /// The logs in the buffer.
+        /// </summary>
         public Log[] Logs
         {
             get
@@ -26,12 +28,14 @@ namespace LogManager
             }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the LogBUffer class.
+        /// </summary>
         public LogBuffer()
         {
-            InUse = false;
             Full = false;
             CurrentIndex = 0;
-            _logs = new Log[ArbiterConcurrentTrace.BufferSize];
+            _logs = new Log[Trace.BufferSize];
         }
 
         /// <summary>
@@ -40,32 +44,47 @@ namespace LogManager
         /// <param name="log">The log to be added</param>
         public void Add(Log log)
         {
-            if (CurrentIndex >= ArbiterConcurrentTrace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {ArbiterConcurrentTrace.BufferSize}.");
+            if (Full)
+                throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {Trace.BufferSize}.");
 
             int l = _logs.Length;
             _logs[CurrentIndex] = log;
 
             CurrentIndex++;
 
-            if (CurrentIndex == ArbiterConcurrentTrace.BufferSize)
+            if (CurrentIndex == Trace.BufferSize)
             {
                 Full = true;
                 if (OnBufferFill != null)
                     OnBufferFill(log);
-
-                return;
             }
 
         }
 
         /// <summary>
-        /// Cleans the buffer.
+        /// Cleares the buffer.
         /// </summary>
         public void Clear()
         {
             CurrentIndex = 0;
-            _logs = new Log[ArbiterConcurrentTrace.BufferSize];
+            _logs = new Log[Trace.BufferSize];
             Full = false;
+        }
+
+        /// <summary>
+        /// Check if the buffer is empty.
+        /// </summary>
+        public bool IsEmpty()
+        {
+            return CurrentIndex == 0;
+        }
+
+        /// <summary>
+        /// Check if the buffer is full.
+        /// </summary>
+        public bool IsFull()
+        {
+            return Full;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace LogManager
     /// Exception rised when the Trace class is not in a valid state
     /// </summary>
     [Serializable]
-    class TraceStateException : Exception
+    public class TraceStateException : Exception
     {
         public TraceStateException() : base()
         {
