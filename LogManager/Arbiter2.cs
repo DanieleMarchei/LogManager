@@ -43,7 +43,10 @@ namespace LogManager
 
             if (FullResources.Count == bufferSize)
             {
+
                 OnAllBuffersFilled();
+
+
                 for (int i = 0; i < bufferSize; i++)
                 {
                     LogBuffer buff = null;
@@ -51,13 +54,21 @@ namespace LogManager
                     buff.Clear();
                     Resources.Enqueue(buff);
                 }
-            } 
+
+
+
+            }
         }
 
         public IEnumerable<LogBuffer> ToList()
         {
+
             List<LogBuffer> buffers = Resources.Where(b => b.CurrentIndex > 0).ToList();
+
             buffers.AddRange(FullResources.ToList());
+
+
+
             return buffers;
         }
 

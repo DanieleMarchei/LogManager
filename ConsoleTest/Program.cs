@@ -15,44 +15,27 @@ namespace ConsoleTest
 
         static void Print()
         {
-            double avg = 0;
-
-            const int NLOGS = 10;
-
-            Random r = new Random();
-
-            Stopwatch stopw = new Stopwatch();
+            const int NLOGS = 1000;
             for (int i = 0; i < NLOGS; i++)
             {
-                //Thread.Sleep(500);
+
                 Log l = new Log(LogLevel.DEBUG, "This is a test log");
-                stopw.Restart();
 
                 ArbiterConcurrentTrace.Write(l);
-
-                stopw.Stop();
-                long finish = stopw.ElapsedMilliseconds;
-                avg += finish;
             }
-
-            avg = avg / NLOGS;
-            AvgDict.GetOrAdd(Guid.NewGuid(), avg);
-
         }
 
         static void Main(string[] args)
         {
-            ArbiterConcurrentTrace.BufferSize = 10;
-            ArbiterConcurrentTrace.NumberOfBuffers = 5;
-
             ArbiterConcurrentTrace.Connect("TestConcurrent2");
             List<Task> tasks = new List<Task>();
-            Stopwatch s = new Stopwatch();
-            s.Start();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 tasks.Add(Task.Factory.StartNew(Print));
             }
+
+            Stopwatch s = new Stopwatch();
+            s.Start();
 
             Task.WaitAll(tasks.ToArray());
             s.Stop();
@@ -60,11 +43,12 @@ namespace ConsoleTest
             Console.WriteLine(time);
             ArbiterConcurrentTrace.Flush();
 
-            //using (StreamWriter file = new StreamWriter("ArbiterConcurrentTrace_benchmark.txt"))
-                //foreach (var entry in AvgDict)
-                    //file.WriteLine("{0} , {1}", entry.Key.ToString().Substring(0,4) , entry.Value.ToString().Replace(',','.'));
+            using (StreamWriter file = new StreamWriter("ArbiterConcurrentTrace_benchmark.txt"))
+                foreach (var entry in AvgDict)
+                    file.WriteLine("{0} , {1}", entry.Key.ToString().Substring(0, 4), entry.Value.ToString().Replace(',', '.'));
 
             Console.WriteLine("done");
+            Console.WriteLine(ArbiterConcurrentTrace.logFlushed);
             Console.ReadLine();
 
         }
