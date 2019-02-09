@@ -15,17 +15,46 @@ namespace LogManager
     /// </summary>
     public class Origin
     {
+        /// <summary>
+        /// Get the id of the device.
+        /// </summary>
         public string IdDevice { get; private set; }
+
+        /// <summary>
+        /// Get the ip address of the device.
+        /// </summary>
         public IPAddress IPAddress { get; private set; }
+
+        /// <summary>
+        /// Get the pid of the process.
+        /// </summary>
         public int ProcId { get; private set; }
+
+        /// <summary>
+        /// Get the thread id.
+        /// </summary>
         public int ThreadId { get; private set; }
 
+        /// <summary>
+        /// Get or set the method name.
+        /// </summary>
         public string MethodName { get; set; }
 
+        /// <summary>
+        /// Creates a new instance of the Origin class.
+        /// </summary>
         public Origin() : this("") { }
 
+        /// <summary>
+        /// Creates a new instance of the Origin class.
+        /// </summary>
+        /// <param name="methodId">The method id</param>
         public Origin(int methodId) : this(methodId.ToString()) { }
 
+        /// <summary>
+        /// Creates a new instance of the Origin class.
+        /// </summary>
+        /// <param name="methodName">The method name</param>
         public Origin(string methodName)
         {
             IdDevice = Dns.GetHostName();

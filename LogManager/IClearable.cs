@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace LogManager
 {
+    /// <summary>
+    /// Defines a way to clear the resource and to test if it is full or empty.
+    /// </summary>
     internal interface IClearable
     {
         /// <summary>

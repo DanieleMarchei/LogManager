@@ -12,12 +12,18 @@ namespace LogManager
     internal class LogBuffer : IClearable
     {
         public delegate void BufferFilled(Log log);
+        /// <summary>
+        /// Event raised when the buffer becomes full.
+        /// </summary>
         public event BufferFilled OnBufferFill;
 
         private int CurrentIndex = 0;
         private bool Full;
         private Log[] _logs { get; set; }
 
+        /// <summary>
+        /// Get all the logs stored in the buffer.
+        /// </summary>
         public Log[] Logs
         {
             get
@@ -26,6 +32,9 @@ namespace LogManager
             }
         }
 
+        /// <summary>
+        /// Creates a new instance of the LogBuffer class.
+        /// </summary>
         public LogBuffer()
         {
             Full = false;

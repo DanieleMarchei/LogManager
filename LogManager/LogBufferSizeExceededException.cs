@@ -13,20 +13,29 @@ namespace LogManager
     [Serializable]
     public class LogBufferSizeExceededException : Exception
     {
+        /// <summary>
+        /// Creates a new instance of the LogBufferSizeExceededException class.
+        /// </summary>
         public LogBufferSizeExceededException() : base()
         {
         }
 
+        /// <summary>
+        /// Creates a new instance of the LogBufferSizeExceededException class.
+        /// </summary>
+        /// <param name="message">The exception message</param>
         public LogBufferSizeExceededException(string message) : base(message)
         {
         }
 
+        /// <summary>
+        /// Creates a new instance of the LogBufferSizeExceededException class.
+        /// </summary>
+        /// <param name="message">The exception message</param>
+        /// <param name="innerException">The exception that is the cause of this exception</param>
         public LogBufferSizeExceededException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
-        protected LogBufferSizeExceededException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }

@@ -20,7 +20,6 @@ namespace ConsoleTest
             {
 
                 Log l = new Log(LogLevel.DEBUG, "This is a test log");
-
                 LogManager.Trace.Write(l);
             }
         }

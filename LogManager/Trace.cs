@@ -12,10 +12,24 @@ using System.Timers;
 
 namespace LogManager
 {
+    /// <summary>
+    /// Allows to connect to a database and save logs concurrently.
+    /// </summary>
     public static class Trace
     {
+        /// <summary>
+        /// Get and set the buffer size. Default = 256.
+        /// </summary>
         public static int BufferSize = 256;
+
+        /// <summary>
+        /// Get and set the number of buffers to be used. Default = 64.
+        /// </summary>
         public static int NumberOfBuffers = 64;
+
+        /// <summary>
+        /// Get and set the time interval between each flush. Default = 10 seconds.
+        /// </summary>
         public static TimeSpan FlushInterval = TimeSpan.FromSeconds(10);
 
         private static readonly object critSec = new object();
@@ -29,6 +43,8 @@ namespace LogManager
         /// Connects to the localhost database where the logs will be saved.
         /// </summary>
         /// <param name="collectionName">Name of the collection where the logs will be saved.</param>
+        /// <param name="domain">Domain or URL of the db's server.</param>
+        /// <param name="port">Port number of the db's server.</param>
         [Conditional("TRACE_LOG")]
         public static void Connect(string collectionName, string domain = "localhost", uint port = 27017)
         {
@@ -71,7 +87,7 @@ namespace LogManager
         }
 
         /// <summary>
-        /// Writes the log into the buffer.
+        /// Writes a log into the buffer.
         /// </summary>
         /// <param name="log">The log to be saved.</param>
         [Conditional("TRACE_LOG")]
