@@ -14,10 +14,9 @@ namespace LogManager
 {
     public static class ArbiterConcurrentTrace
     {
-        public static int logFlushed = 0;
-
         public static int BufferSize = 256;
         public static int NumberOfBuffers = 64;
+        public static TimeSpan FlushInterval = TimeSpan.FromSeconds(10);
 
         private static LogBuffer[] Buffers = null;
         private static readonly object critSec = new object();
@@ -31,11 +30,11 @@ namespace LogManager
         /// Connects to the localhost database where the logs will be saved.
         /// </summary>
         /// <param name="collectionName">Name of the collection where the logs will be saved.</param>
-        public static void Connect(string collectionName)
+        public static void Connect(string collectionName, string domain = "localhost", uint port = 27017)
         {
             if (Collection != null) throw new TraceStateException("Connection already established.");
 
-            client = new MongoClient("mongodb://localhost:27017");
+            client = new MongoClient($"mongodb://{domain}:{port}");
 
             //just to update the description state
             var databases = client.ListDatabases();
@@ -56,7 +55,7 @@ namespace LogManager
             //I create a new delegate in order to call a method with a Conditional Attribute
             Arbiter.OnAllBuffersFilled += Flush;
 
-            timer = new Timer(10000);
+            timer = new Timer(FlushInterval.TotalMilliseconds);
             timer.AutoReset = false;
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
@@ -75,8 +74,7 @@ namespace LogManager
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
                 throw new TraceStateException("No connection to local db.");
-            
-
+           
             LogBuffer freeBuffer = Arbiter.Wait();
             
 
@@ -104,9 +102,6 @@ namespace LogManager
                 {
                     b.AddRange(logBuff.Logs);
                 }
-
-                logFlushed += b.Count;
-                
 
                 if (b.Count == 0) return;
 

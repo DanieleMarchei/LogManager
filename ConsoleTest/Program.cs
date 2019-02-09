@@ -15,7 +15,7 @@ namespace ConsoleTest
 
         static void Print()
         {
-            const int NLOGS = 1000;
+            const int NLOGS = 200;
             for (int i = 0; i < NLOGS; i++)
             {
 
@@ -48,7 +48,6 @@ namespace ConsoleTest
                     file.WriteLine("{0} , {1}", entry.Key.ToString().Substring(0, 4), entry.Value.ToString().Replace(',', '.'));
 
             Console.WriteLine("done");
-            Console.WriteLine(ArbiterConcurrentTrace.logFlushed);
             Console.ReadLine();
 
         }
