@@ -21,7 +21,7 @@ namespace LogManager
         private static readonly object critSec = new object();
         private static MongoClient client = null;
         private static IMongoCollection<Log> Collection = null;
-        private static Arbiter Arbiter = null;
+        private static Arbiter<LogBuffer> Arbiter = null;
 
         private static Timer timer = null;
 
@@ -50,8 +50,8 @@ namespace LogManager
                 Buffers[i] = new LogBuffer();
             }
 
-            Arbiter = new Arbiter(Buffers);
-            Arbiter.OnAllBuffersFilled += Flush;
+            Arbiter = new Arbiter<LogBuffer>(Buffers);
+            Arbiter.OnAllResourcesFilled += Flush;
 
             timer = new Timer(FlushInterval.TotalMilliseconds);
             timer.AutoReset = false;
@@ -104,7 +104,6 @@ namespace LogManager
                 if (b.Count == 0) return;
 
                 Collection.InsertMany(b);
-                Arbiter.Clear();
                 timer.Start();
             }
         }

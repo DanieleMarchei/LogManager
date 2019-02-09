@@ -9,14 +9,15 @@ namespace LogManager
     /// <summary>
     /// Data structue for cacheing logs
     /// </summary>
-    internal class LogBuffer
+    internal class LogBuffer : IClearable
     {
-        public bool Full { get; private set; }
         public delegate void BufferFilled(Log log);
         public event BufferFilled OnBufferFill;
 
-        public int CurrentIndex { get; private set; }
+        private int CurrentIndex = 0;
+        private bool Full;
         private Log[] _logs { get; set; }
+
         public Log[] Logs
         {
             get
@@ -63,6 +64,22 @@ namespace LogManager
             CurrentIndex = 0;
             _logs = new Log[Trace.BufferSize];
             Full = false;
+        }
+
+        /// <summary>
+        /// Get if the buffer is full or not.
+        /// </summary>
+        public bool IsFull()
+        {
+            return Full;
+        }
+
+        /// <summary>
+        /// Get if the buffer is empty or not.
+        /// </summary>
+        public bool IsEmpty()
+        {
+            return CurrentIndex == 0;
         }
     }
 }

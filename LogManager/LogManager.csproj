@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arbiter.cs" />
+    <Compile Include="IClearable.cs" />
     <Compile Include="LogBuffer.cs" />
     <Compile Include="LogBufferSizeExceededException.cs" />
     <Compile Include="Log.cs" />
