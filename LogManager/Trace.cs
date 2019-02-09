@@ -18,7 +18,6 @@ namespace LogManager
         public static int NumberOfBuffers = 64;
         public static TimeSpan FlushInterval = TimeSpan.FromSeconds(10);
 
-        private static LogBuffer[] Buffers = null;
         private static readonly object critSec = new object();
         private static MongoClient client = null;
         private static IMongoCollection<Log> Collection = null;
@@ -45,14 +44,13 @@ namespace LogManager
             var database = client.GetDatabase(Dns.GetHostName());
             Collection = database.GetCollection<Log>(collectionName);
 
-            Buffers = new LogBuffer[NumberOfBuffers];
+            LogBuffer[] Buffers = new LogBuffer[NumberOfBuffers];
             for (int i = 0; i < NumberOfBuffers; i++)
             {
                 Buffers[i] = new LogBuffer();
             }
 
             Arbiter = new Arbiter(Buffers);
-            //I create a new delegate in order to call a method with a Conditional Attribute
             Arbiter.OnAllBuffersFilled += Flush;
 
             timer = new Timer(FlushInterval.TotalMilliseconds);

@@ -11,7 +11,6 @@ namespace LogManager
     /// </summary>
     internal class LogBuffer
     {
-        public bool InUse { get; set; }
         public bool Full { get; private set; }
         public delegate void BufferFilled(Log log);
         public event BufferFilled OnBufferFill;
@@ -28,7 +27,6 @@ namespace LogManager
 
         public LogBuffer()
         {
-            InUse = false;
             Full = false;
             CurrentIndex = 0;
             _logs = new Log[Trace.BufferSize];
@@ -42,7 +40,6 @@ namespace LogManager
         {
             if (CurrentIndex >= Trace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {Trace.BufferSize}.");
 
-            int l = _logs.Length;
             _logs[CurrentIndex] = log;
 
             CurrentIndex++;

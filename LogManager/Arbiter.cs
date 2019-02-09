@@ -15,14 +15,14 @@ namespace LogManager
         public event AllBuffersFilled OnAllBuffersFilled;
 
         private ConcurrentQueue<LogBuffer> Resources = null;
-        private int bufferSize = 0;
+        private int BufferSize = 0;
         private ConcurrentQueue<LogBuffer> FullResources = null;
 
         public Arbiter(IEnumerable<LogBuffer> resources)
         {
             Resources = new ConcurrentQueue<LogBuffer>(resources);
             FullResources = new ConcurrentQueue<LogBuffer>();
-            bufferSize = Resources.Count;
+            BufferSize = Resources.Count;
         }
 
         public LogBuffer Wait()
@@ -41,13 +41,13 @@ namespace LogManager
             else
                 Resources.Enqueue(logBuf);
 
-            if (FullResources.Count == bufferSize)
+            if (FullResources.Count == BufferSize)
             {
 
                 OnAllBuffersFilled();
 
 
-                for (int i = 0; i < bufferSize; i++)
+                for (int i = 0; i < BufferSize; i++)
                 {
                     LogBuffer buff = null;
                     FullResources.TryDequeue(out buff);
@@ -74,7 +74,7 @@ namespace LogManager
 
         public void Clear()
         {
-            for (int i = 0; i < bufferSize; i++)
+            for (int i = 0; i < BufferSize; i++)
             {
                 LogBuffer buff = null;
                 Resources.TryDequeue(out buff);
