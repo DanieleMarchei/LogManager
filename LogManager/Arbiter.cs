@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,58 +11,77 @@ namespace LogManager
 {
     internal class Arbiter
     {
-        public int Threads { get; private set; }
-
         public delegate void AllBuffersFilled();
         public event AllBuffersFilled OnAllBuffersFilled;
 
-        private Queue<LogBuffer> Resources = null;
+        private ConcurrentQueue<LogBuffer> Resources = null;
         private int bufferSize = 0;
-        private Queue<LogBuffer> FullResources = null;
-        private readonly object critSec = new object();
+        private ConcurrentQueue<LogBuffer> FullResources = null;
 
         public Arbiter(IEnumerable<LogBuffer> resources)
         {
-            Resources = new Queue<LogBuffer>(resources);
-            FullResources = new Queue<LogBuffer>();
+            Resources = new ConcurrentQueue<LogBuffer>(resources);
+            FullResources = new ConcurrentQueue<LogBuffer>();
             bufferSize = Resources.Count;
         }
 
         public LogBuffer Wait()
         {
             LogBuffer logBuf = null;
-            lock (critSec)
-            {
-                while(Resources.Count == 0)
-                {
-                    Thread.Sleep(2);
-                }
-                logBuf = Resources.Dequeue();
 
-            }
-            return logBuf; 
+            while (!Resources.TryDequeue(out logBuf))
+                Thread.Sleep(2);
+            return logBuf;
         }
 
         public void Release(LogBuffer logBuf)
         {
-            lock (critSec)
+            if (logBuf.Full)
+                FullResources.Enqueue(logBuf);
+            else
+                Resources.Enqueue(logBuf);
+
+            if (FullResources.Count == bufferSize)
             {
 
-                if (logBuf.Full)
-                    FullResources.Enqueue(logBuf);
-                else
-                    Resources.Enqueue(logBuf);
+                OnAllBuffersFilled();
 
-                if (FullResources.Count == bufferSize)
+
+                for (int i = 0; i < bufferSize; i++)
                 {
-                    OnAllBuffersFilled();
-                    for (int i = 0; i < bufferSize; i++)
-                    {
-                        LogBuffer buff = FullResources.Dequeue();
-                        buff.Clear();
-                        Resources.Enqueue(buff);
-                    }
+                    LogBuffer buff = null;
+                    FullResources.TryDequeue(out buff);
+                    buff.Clear();
+                    Resources.Enqueue(buff);
                 }
+
+
+
+            }
+        }
+
+        public IEnumerable<LogBuffer> GetNonEmptyResources()
+        {
+
+            List<LogBuffer> buffers = Resources.Where(b => b.CurrentIndex > 0).ToList();
+
+            buffers.AddRange(FullResources.ToList());
+
+
+
+            return buffers;
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < bufferSize; i++)
+            {
+                LogBuffer buff = null;
+                Resources.TryDequeue(out buff);
+                if (buff == null) return;
+
+                buff.Clear();
+                Resources.Enqueue(buff);
             }
         }
 

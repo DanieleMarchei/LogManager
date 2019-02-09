@@ -21,13 +21,13 @@ namespace ConsoleTest
 
                 Log l = new Log(LogLevel.DEBUG, "This is a test log");
 
-                ArbiterConcurrentTrace.Write(l);
+                LogManager.Trace.Write(l);
             }
         }
 
         static void Main(string[] args)
         {
-            ArbiterConcurrentTrace.Connect("TestConcurrent2");
+            LogManager.Trace.Connect("TestConcurrent2");
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < 100; i++)
             {
@@ -41,7 +41,7 @@ namespace ConsoleTest
             s.Stop();
             long time = s.ElapsedMilliseconds;
             Console.WriteLine(time);
-            ArbiterConcurrentTrace.Flush();
+            LogManager.Trace.Flush();
 
             using (StreamWriter file = new StreamWriter("ArbiterConcurrentTrace_benchmark.txt"))
                 foreach (var entry in AvgDict)
