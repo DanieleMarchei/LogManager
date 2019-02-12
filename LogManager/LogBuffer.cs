@@ -39,7 +39,7 @@ namespace LogManager
         {
             Full = false;
             CurrentIndex = 0;
-            _logs = new Log[Trace.BufferSize];
+            _logs = new Log[TraceLog.BufferSize];
         }
 
         /// <summary>
@@ -48,13 +48,13 @@ namespace LogManager
         /// <param name="log">The log to be added</param>
         public void Add(Log log)
         {
-            if (CurrentIndex >= Trace.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {Trace.BufferSize}.");
+            if (CurrentIndex >= TraceLog.BufferSize) throw new LogBufferSizeExceededException($"Tried to add a Log into a filled buffer of size {TraceLog.BufferSize}.");
 
             _logs[CurrentIndex] = log;
 
             CurrentIndex++;
 
-            if (CurrentIndex == Trace.BufferSize)
+            if (CurrentIndex == TraceLog.BufferSize)
             {
                 Full = true;
                 if (OnBufferFill != null)
@@ -71,7 +71,7 @@ namespace LogManager
         public void Clear()
         {
             CurrentIndex = 0;
-            _logs = new Log[Trace.BufferSize];
+            _logs = new Log[TraceLog.BufferSize];
             Full = false;
         }
 

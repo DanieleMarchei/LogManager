@@ -15,7 +15,7 @@ namespace LogManager
     /// <summary>
     /// Allows to connect to a database and save logs concurrently.
     /// </summary>
-    public static class Trace
+    public static class TraceLog
     {
         /// <summary>
         /// Get and set the buffer size. Default = 256.
@@ -48,7 +48,7 @@ namespace LogManager
         [Conditional("TRACE_LOG")]
         public static void Connect(string collectionName, string domain = "localhost", uint port = 27017)
         {
-            if (Collection != null) throw new TraceStateException("Connection already established.");
+            if (Collection != null) throw new TraceLogStateException("Connection already established.");
 
             client = new MongoClient($"mongodb://{domain}:{port}");
 
@@ -56,7 +56,7 @@ namespace LogManager
             var databases = client.ListDatabases();
 
             if (client.Cluster.Description.State == ClusterState.Disconnected)
-                throw new TraceStateException("Local db is unreachable.");
+                throw new TraceLogStateException("Local db is unreachable.");
 
             var database = client.GetDatabase(Dns.GetHostName());
             Collection = database.GetCollection<Log>(collectionName);
@@ -94,7 +94,7 @@ namespace LogManager
         public static void Write(Log log)
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
-                throw new TraceStateException("No connection to local db.");
+                throw new TraceLogStateException("No connection to local db.");
            
             LogBuffer freeBuffer = Arbiter.Wait();
             
@@ -112,7 +112,7 @@ namespace LogManager
         public static void Flush()
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
-                throw new TraceStateException("No connection to local db.");
+                throw new TraceLogStateException("No connection to local db.");
 
             lock (critSec)
             {

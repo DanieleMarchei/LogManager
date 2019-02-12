@@ -66,9 +66,9 @@
     <Compile Include="Log.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Origin.cs" />
-    <Compile Include="Trace.cs" />
+    <Compile Include="TraceLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TraceStateException.cs" />
+    <Compile Include="TraceLogStateException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

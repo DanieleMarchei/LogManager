@@ -18,13 +18,13 @@ namespace ConsoleTest
             {
 
                 Log l = new Log(LogLevel.DEBUG, "This is a test log");
-                LogManager.Trace.Write(l);
+                LogManager.TraceLog.Write(l);
             }
         }
 
         static void Main(string[] args)
         {
-            LogManager.Trace.Connect("TestConcurrent2");
+            TraceLog.Connect("TestConcurrent2");
 
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < 100; i++)
@@ -44,7 +44,7 @@ namespace ConsoleTest
 
             Console.WriteLine(time);
 
-            LogManager.Trace.Flush();
+            LogManager.TraceLog.Flush();
 
             Console.WriteLine("done");
             Console.ReadLine();
