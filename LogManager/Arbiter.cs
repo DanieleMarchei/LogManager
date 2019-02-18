@@ -63,13 +63,15 @@ namespace LogManager
             if (FullResources.Count == ResourcesSize)
             {
                 OnAllResourcesFilled();
-                for (int i = 0; i < ResourcesSize; i++)
-                {
-                    T res = null;
-                    FullResources.TryDequeue(out res);
-                    res.Clear();
-                    Resources.Enqueue(res);
-                }
+                //for (int i = 0; i < ResourcesSize; i++)
+                //{
+                //    T res = null;
+                //    FullResources.TryDequeue(out res);
+                //    res.Clear();
+                //    Resources.Enqueue(res);
+                //}
+
+                ClearResources();
             }
         }
 
@@ -82,6 +84,33 @@ namespace LogManager
             res.AddRange(FullResources.ToList());
 
             return res;
+        }
+
+        public void ClearResources()
+        {
+            int resCount = Resources.Count;
+            for (int i = 0; i < resCount; i++)
+            {
+                T res = null;
+                Resources.TryDequeue(out res);
+
+                if (res == null) break;
+
+                res.Clear();
+                Resources.Enqueue(res);
+            }
+
+            resCount = FullResources.Count;
+            for (int i = 0; i < resCount; i++)
+            {
+                T res = null;
+                FullResources.TryDequeue(out res);
+
+                if (res == null) break;
+
+                res.Clear();
+                Resources.Enqueue(res);
+            }
         }
 
     }

@@ -128,6 +128,7 @@ namespace LogManager
                 if (b.Count == 0) return;
 
                 Collection.InsertMany(b);
+                Arbiter.ClearResources();
                 timer.Start();
             }
         }
