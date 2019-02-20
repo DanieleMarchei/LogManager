@@ -76,7 +76,7 @@ namespace LogManager
             timer.Start();
         }
 
-        private static void Arbiter_OnAllResourcesFilled()
+        private static void Arbiter_OnAllResourcesFilled(object sender, EventArgs e)
         {
             Flush();
         }

@@ -15,7 +15,7 @@ namespace LogManager
     /// <typeparam name="T">The type of resources</typeparam>
     internal class Arbiter<T> where T : class, IClearable
     {
-        public delegate void AllResourcesFilled();
+        public delegate void AllResourcesFilled(object sender, EventArgs args);
         /// <summary>
         /// Event raised when there is no resource available.
         /// </summary>
@@ -62,7 +62,7 @@ namespace LogManager
 
             if (FullResources.Count == ResourcesSize)
             {
-                OnAllResourcesFilled();
+                OnAllResourcesFilled(this, null);
                 //for (int i = 0; i < ResourcesSize; i++)
                 //{
                 //    T res = null;
