@@ -63,14 +63,6 @@ namespace LogManager
             if (FullResources.Count == ResourcesSize)
             {
                 OnAllResourcesFilled(this, null);
-                //for (int i = 0; i < ResourcesSize; i++)
-                //{
-                //    T res = null;
-                //    FullResources.TryDequeue(out res);
-                //    res.Clear();
-                //    Resources.Enqueue(res);
-                //}
-
                 ClearResources();
             }
         }
@@ -80,7 +72,7 @@ namespace LogManager
         /// </summary>
         public IEnumerable<T> GetNonEmptyResources()
         {
-            List<T> res = Resources.Where(r => !r.IsFull()).ToList();
+            List<T> res = Resources.Where(r => !r.IsEmpty()).ToList();
             res.AddRange(FullResources.ToList());
 
             return res;
