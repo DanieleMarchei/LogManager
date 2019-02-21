@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Driver.Core.Clusters;
 using System;
 using System.Collections;
@@ -95,12 +96,12 @@ namespace LogManager
         {
             if (client == null || client.Cluster.Description.State == ClusterState.Disconnected)
                 throw new TraceLogStateException("No connection to local db.");
-           
+
             LogBuffer freeBuffer = Arbiter.Wait();
-            
+
 
             freeBuffer.Add(log);
-            
+
 
             Arbiter.Release(freeBuffer);
         }
@@ -119,7 +120,7 @@ namespace LogManager
                 timer.Stop();
                 List<Log> b = new List<Log>();
                 IEnumerable<LogBuffer> logs = Arbiter.GetNonEmptyResources();
-                
+
                 foreach (LogBuffer logBuff in logs)
                 {
                     b.AddRange(logBuff.Logs);
@@ -130,6 +131,57 @@ namespace LogManager
                 Collection.InsertMany(b);
                 Arbiter.ClearResources();
                 timer.Start();
+            }
+        }
+
+        /// <summary>
+        /// Sends all the logs in the local db to a specified server. When all the logs are sent, the database is cleared.
+        /// </summary>
+        /// <param name="domain">Domain or URL of the server</param>
+        /// <param name="port">Port number of the server</param>
+        /// <param name="database">Name of the database where the logs will be sent</param>
+        /// <param name="collection">Name of the collection where the logs will be sent</param>
+        [Conditional("TRACE_LOG")]
+        public static void SendToServer(string domain, uint port, string database, string collection)
+        {
+
+            var serverInstance = new MongoClient($"mongodb://{domain}:{port}");
+
+            serverInstance.ListDatabases();
+
+            if (serverInstance.Cluster.Description.State == ClusterState.Disconnected)
+                throw new TraceLogStateException("Server db is unreachable.");
+
+            var db = serverInstance.GetDatabase(database);
+            var coll = db.GetCollection<Log>(collection);
+
+            List<Log> tmpDocuments = new List<Log>();
+            List<string> collectionsName = new List<string>();
+            List<BsonDocument> collections = new List<BsonDocument>();
+            var cursor = Collection.Database.ListCollections();
+            while (cursor.MoveNext())
+            {
+                collections.AddRange(cursor.Current);
+            }
+            //tmpDocuments will have the name of all the collections present inside the database
+            //to pick the name of a collection navigate the bson document with "name"
+            collections.ForEach(_ =>
+            {
+                collectionsName.Add(_["name"].ToString());
+            });
+            foreach (string s in collectionsName)
+            {
+                tmpDocuments.AddRange(Collection.Database.GetCollection<Log>(s).Find(_ => true).ToList<Log>());
+            }
+
+            coll.InsertMany(tmpDocuments);
+            //clear the collection once it has sent all the logs to the server
+            foreach (string s in collectionsName)
+            {
+                //o la pulisce ma la lascia nel db
+                Collection.Database.GetCollection<Log>(s).DeleteMany(_ => true);
+                //o la toglie direttamente, scegli tu
+                Collection.Database.DropCollection(s);
             }
         }
     }
