@@ -178,10 +178,7 @@ namespace LogManager
             //clear the collection once it has sent all the logs to the server
             foreach (string s in collectionsName)
             {
-                //o la pulisce ma la lascia nel db
                 Collection.Database.GetCollection<Log>(s).DeleteMany(_ => true);
-                //o la toglie direttamente, scegli tu
-                Collection.Database.DropCollection(s);
             }
         }
     }
