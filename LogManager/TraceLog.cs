@@ -174,6 +174,8 @@ namespace LogManager
                 tmpDocuments.AddRange(Collection.Database.GetCollection<Log>(s).Find(_ => true).ToList<Log>());
             }
 
+            if (tmpDocuments.Count == 0) return;
+
             coll.InsertMany(tmpDocuments);
             //clear the collection once it has sent all the logs to the server
             foreach (string s in collectionsName)

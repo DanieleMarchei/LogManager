@@ -104,6 +104,5 @@ namespace LogManager
                 Resources.Enqueue(res);
             }
         }
-
     }
 }
